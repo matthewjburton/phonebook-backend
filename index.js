@@ -1,11 +1,13 @@
 const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+
 const app = express();
 
 app.use(express.json());
-
-const morgan = require("morgan");
-
+app.use(express.static("dist"));
 app.use(morgan("tiny"));
+app.use(cors());
 
 let persons = [
   {
@@ -31,6 +33,7 @@ let persons = [
 ];
 
 app.get("/api/persons", (request, response) => {
+  console.log("All persons", persons);
   response.json(persons);
 });
 
@@ -39,6 +42,7 @@ app.get("/api/persons/:id", (request, response) => {
   const person = persons.find((person) => person.id === id);
 
   if (person) {
+    console.log("Person at requested id", person);
     response.json(person);
   } else {
     response.status(404).end();
@@ -48,6 +52,7 @@ app.get("/api/persons/:id", (request, response) => {
 app.get("/api/info", (request, response) => {
   const currentDate = new Date().toUTCString();
 
+  console.log("Number of persons", persons.length, "Date", currentDate);
   response.send(
     `<p>Phonebook has info for ${persons.length} people</p>
     <p>${currentDate}</p>`
@@ -58,23 +63,28 @@ app.delete("/api/persons/:id", (request, response) => {
   const id = request.params.id;
   persons = persons.filter((person) => person.id !== id);
 
+  console.log("Persons after deletion", persons);
   response.status(204).end();
 });
 
 const generateId = () => {
-  return String(Math.floor(Math.random() * 1000000));
+  const newID = String(Math.floor(Math.random() * 1000000));
+  console.log(newID);
+  return newID;
 };
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
+    console.log("Cannot post new person, name or number missing");
     return response.status(400).json({
       error: "name or number missing",
     });
   }
 
   if (persons.some((person) => person.name === body.name)) {
+    console.log("A person with the name you are trying to post already exists");
     return response.status(409).json({
       error: "name must be unique",
     });
@@ -86,12 +96,14 @@ app.post("/api/persons", (request, response) => {
     number: body.number,
   };
 
+  console.log("Generated new person", person);
+
   persons = persons.concat(person);
 
   response.json(person);
 });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
