@@ -80,6 +80,27 @@ app.post("/api/persons", (request, response) => {
     .catch((error) => next(error));
 });
 
+app.put("/api/persons/:id", (request, response) => {
+  const body = request.body;
+  const id = request.params.id;
+
+  const updatedPerson = {
+    name: body.name,
+    number: body.number,
+  };
+
+  Person.findByIdAndUpdate(id, updatedPerson, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
+    .then((updatedPerson) => {
+      console.log("Updated person", updatedPerson);
+      response.json(updatedPerson);
+    })
+    .catch((error) => next(error));
+});
+
 // Handle unknown endpoints
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
