@@ -70,11 +70,11 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(204).end();
 });
 
-const generateId = () => {
+/*const generateId = () => {
   const newID = String(Math.floor(Math.random() * 1000000));
   console.log(newID);
   return newID;
-};
+};*/
 
 app.post("/api/persons", (request, response) => {
   const body = request.body;
@@ -86,24 +86,22 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  if (persons.some((person) => person.name === body.name)) {
+  /*if (persons.some((person) => person.name === body.name)) {
     console.log("A person with the name you are trying to post already exists");
     return response.status(409).json({
       error: "name must be unique",
     });
-  }
+  }*/
 
-  const person = {
-    id: generateId(),
+  const person = new Person({
+    //id: generateId(),
     name: body.name,
     number: body.number,
-  };
+  });
 
-  console.log("Generated new person", person);
-
-  persons = persons.concat(person);
-
-  response.json(person);
+  person.save().then((savedPerson) => {
+    response.json(savedPerson);
+  });
 });
 
 const PORT = process.env.PORT;
