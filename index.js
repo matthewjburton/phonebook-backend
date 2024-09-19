@@ -22,24 +22,27 @@ app.get("/api/persons", (request, response, next) => {
 
 app.get("/api/persons/:id", (request, response) => {
   const id = request.params.id;
-  const person = persons.find((person) => person.id === id);
 
-  if (person) {
-    console.log("Person at requested id", person);
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+  Person.findById(id).then((person) => {
+    if (person) {
+      console.log("Person at requested id", person);
+      response.json(person);
+    } else {
+      response.status(404).end();
+    }
+  });
 });
 
 app.get("/api/info", (request, response) => {
   const currentDate = new Date().toUTCString();
 
-  console.log("Number of persons", persons.length, "Date", currentDate);
-  response.send(
-    `<p>Phonebook has info for ${persons.length} people</p>
+  Person.find({}).then((persons) => {
+    console.log("Number of persons", persons.length, "Date", currentDate);
+    response.send(
+      `<p>Phonebook has info for ${persons.length} people</p>
     <p>${currentDate}</p>`
-  );
+    );
+  });
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
