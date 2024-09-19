@@ -12,7 +12,7 @@ app.use(morgan("tiny"));
 app.use(cors());
 
 // Endpoint routes
-app.get("/api/persons", (request, response) => {
+app.get("/api/persons", (request, response, next) => {
   Person.find({})
     .then((persons) => {
       response.send(persons);
@@ -42,7 +42,7 @@ app.get("/api/info", (request, response) => {
   );
 });
 
-app.delete("/api/persons/:id", (request, response) => {
+app.delete("/api/persons/:id", (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
     .then((result) => {
       response.status(204).end();
