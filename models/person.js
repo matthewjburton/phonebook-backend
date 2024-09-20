@@ -22,7 +22,19 @@ const personSchema = new mongoose.Schema({
     minLength: 3,
     required: true,
   },
-  number: String,
+  number: {
+    type: String,
+    minLength: 8,
+    required: true,
+    validate: {
+      validator: function (v) {
+        // Regular expression to match numbers in the format xx-xxxxxxx or xxx-xxxxxxx
+        return /^\d{2,3}-\d+$/.test(v) && v.length >= 8;
+      },
+    },
+    message: (props) =>
+      `${props.value} is not a valid phone number! It should be in the format xx-xxxxxxx or xxx-xxxxxxx`,
+  },
 });
 
 personSchema.set("toJSON", {
