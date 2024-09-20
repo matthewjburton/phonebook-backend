@@ -20,29 +20,33 @@ app.get("/api/persons", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   const id = request.params.id;
 
-  Person.findById(id).then((person) => {
-    if (person) {
-      console.log("Person at requested id", person);
-      response.json(person);
-    } else {
-      response.status(404).end();
-    }
-  });
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        console.log("Person at requested id", person);
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => next(error));
 });
 
-app.get("/api/info", (request, response) => {
+app.get("/api/info", (request, response, next) => {
   const currentDate = new Date().toUTCString();
 
-  Person.find({}).then((persons) => {
-    console.log("Number of persons", persons.length, "Date", currentDate);
-    response.send(
-      `<p>Phonebook has info for ${persons.length} people</p>
+  Person.find({})
+    .then((persons) => {
+      console.log("Number of persons", persons.length, "Date", currentDate);
+      response.send(
+        `<p>Phonebook has info for ${persons.length} people</p>
     <p>${currentDate}</p>`
-    );
-  });
+      );
+    })
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response, next) => {
@@ -53,7 +57,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
@@ -62,13 +66,6 @@ app.post("/api/persons", (request, response) => {
       error: "name or number missing",
     });
   }
-
-  /*if (persons.some((person) => person.name === body.name)) {
-    console.log("A person with the name you are trying to post already exists");
-    return response.status(409).json({
-      error: "name must be unique",
-    });
-  }*/
 
   const person = new Person({
     name: body.name,
@@ -83,13 +80,13 @@ app.post("/api/persons", (request, response) => {
     .catch((error) => next(error));
 });
 
-app.put("/api/persons/:id", (request, response) => {
-  const body = request.body;
+app.put("/api/persons/:id", (request, response, next) => {
+  const { name, number } = request.body;
   const id = request.params.id;
 
   const updatedPerson = {
-    name: body.name,
-    number: body.number,
+    name: name,
+    number: number,
   };
 
   Person.findByIdAndUpdate(id, updatedPerson, {
@@ -117,6 +114,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
   next(error);
